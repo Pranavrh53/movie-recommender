@@ -106,3 +106,10 @@ Include more granular filters (e.g., by genre, release year).
 Implement a recommendation algorithm based on user history.
 implement a machine learning model to analyze recommended movies in the past
 ```
+
+
+## project members
+1RF23IS064- PRANAV RH
+1RF23IS088- THANMAY HT
+1RF23IS070-RISHABH SINGH
+
