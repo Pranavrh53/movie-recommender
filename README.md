@@ -73,6 +73,7 @@ MovieRecommender/
 │   ├── posters/                
 │   │   └── inception.jpg
         └── The Matrix.jpg
+│   ├────README.md
 ```
 
 
