@@ -16,28 +16,28 @@ Dynamic UI: Smooth transitions and responsive design for various screen sizes.
 
 ## Installation
 
-To get started with the Literary Insight Engine, follow these steps:
+To get started with the movie-recommender, follow these steps:
 
-Clone the repository:
-git clone [git@github.com:RahulRR-10/LiteraryInsightEngine.git](https://github.com/RahulRR-10/LiteraryInsightEngine.git)
-cd LiteraryInsightEngine
+Clone the Repository
 
-Install the required dependencies:
-pip install -r requirements.txt
+git clone https://github.com/your-repo/MovieRecommender.git
+cd MovieRecommender
+Setup Backend
 
-Download necessary NLTK data:
-import nltk
-nltk.download('stopwords')
+Ensure you have Java installed.
+Compile and run the backend server:
+bash
+Copy code
+javac MovieRecommender.java
+java MovieRecommender
+The server will start on an available port (default: 8080).
+Run the Frontend
 
-Set up environment variables by creating a .env file for Azure and OpenAI API keys:
-OPENAI_API_KEY=your_openai_api_key
-AZURE_KEY_VAULT_NAME=your_azure_key_vault_name
-AZURE_CLIENT_ID=your_azure_client_id
-AZURE_TENANT_ID=your_azure_tenant_id
-AZURE_CLIENT_SECRET=your_azure_client_secret
+Open index.html in any modern web browser.
+Place Movie Data
 
-Run the application:
-flask run
+Ensure movies.csv is in the same directory as MovieRecommender.java.
+
 
 
 ## Folder Structure
@@ -45,82 +45,43 @@ flask run
 The project follows a structured folder organization:
 
 ```
-your_project/
-├── backend/
-│   ├── app.py                 // Main Flask app file
-│   ├── static/
-│   │   └── wordclouds/         // Generated word clouds
-│   ├── templates/
-│   │   └── all_results.html    // HTML template for displaying results
-│   ├── uploads/                // Directory for uploaded text files
-│   └── requirements.txt        // Python dependencies
-├── frontend/
-│   ├── public/                 // Public folder for frontend assets
-│   ├── src/
-│   │   ├── components/         // React components
-│   │   │   ├── FileUpload.js   // Component for file upload
-│   │   │   ├── UtilitySelector.js // Component for selecting text utilities
-│   │   │   ├── WordCloud.js    // Component for displaying word clouds
-│   │   │   └── ResultsViewer.js // Component for displaying results
-│   │   ├── App.js              // Main App component
-│   │   └── index.js            // Entry point for React app
-│   ├── package.json            // Node.js dependencies
-│   └── .env                    // Environment variables for React
-├── .gitignore                  // Files to ignore in git
-└── README.md                   // Project documentation
-
+MovieRecommender/
+├── src/                     
+│   ├── MovieRecommender.java    
+│   ├── movies.csv              
+    ├── index.html                 
+│   ├── style.css              
+│   ├── posters/                
+│   │   └── inception.jpg
+        └── The Matrix.jpg
 ```
 
 
 
 ## Usage
 
-    Upload a text file on the Dashboard.
-    Select a utility (e.g., Word Cloud, Sentiment Analysis, Geospatial Mapping) from the available options.
-    View the results on the respective results page with interactive visuals and detailed analysis.
-    Navigate between utilities without re-uploading the file.
+Open the application in a browser.
+Follow the prompts to select your preferences:
+Step 1: Select your current mood.
+Step 2: Choose the pace of the movie.
+Step 3: Decide if the movie should be family-friendly.
+Receive recommendations with movie details and options to view trailers.
 
-Word Cloud
 
-    After uploading your text, click on the Word Cloud tile to visualize the most frequent words in a word cloud format.
-
-Sentiment Analysis
-
-    Explore the emotional tone of your text. The results page will display sentiment polarity and subjectivity with a corresponding graph.
-
-Geospatial Mapping
-
-    Visualize the locations mentioned in your text on an interactive map, allowing you to explore the geographical aspect of literature.
-
-# UI Upgrade: React Integration
-
-The Literary Insight Engine is getting an improved, modern, and responsive UI by integrating React. This update aims to enhance user interactivity and provide a more streamlined experience.
-
-With the React upgrade, users can expect:
-
-    Faster Interactions: With real-time UI updates and no full-page reloads.
-    Cleaner Design: More modular and maintainable interface.
-    Improved Responsiveness: Optimized for use across various devices, including tablets and mobile phones.
-    Engaging User Experience: Enhanced interactivity for utilities like word clouds, maps, and sentiment analysis.
-
-We are continuously working to refine the user experience, and this React integration will make the Literary Insight Engine more intuitive and powerful.
+## Contributing
+Fork the repository.
+Create a feature branch (git checkout -b feature-branch).
+Commit changes (git commit -am 'Add new feature').
+Push the branch (git push origin feature-branch).
+Create a Pull Request.
 
 
 ## Future Enhancements
+Add user authentication and profiles.
+Include more granular filters (e.g., by genre, release year).
+Implement a recommendation algorithm based on user history.
+implement a machine learning model to analyze recommended movies in the past
 
-    Enhanced Topic Modeling: Deeper insights using more advanced algorithms.
-    Stylometry: Authorial style comparison and visualization.
-    Radar Charts for Emotions: Display emotional tones in a radar chart for better understanding of the emotional structure of the text.
-    More Interactive Visualizations: Continued improvements to charts and visualizations with Plotly and D3.js.
-    Chatbot Feature: Integrating Azure OpenAI for a literary-focused chatbot to provide deeper insights and answers based on the uploaded text.
 
-## Contributing
 
-We welcome contributions to the Literary Insight Engine! Please follow these steps:
-
-    Fork the repository.
-    Create a new branch (git checkout -b feature/new-feature).
-    Commit your changes (git commit -m 'Add new feature').
-    Push to the branch (git push origin feature/new-feature).
-    Open a pull request and describe your changes.
 
