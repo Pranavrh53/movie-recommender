@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommender</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .page-nav {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .page-nav button {
+            width: auto;
+            padding: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Movie Recommender</h1>
+        
+        <!-- Mood Selection Page -->
+        <div id="moodPage" class="preference-form page active">
+            <h2>What's your current mood?</h2>
+            
+            <div class="mood-options">
+                <button class="mood-btn" data-mood="happy">Happy 😊</button>
+    <button class="mood-btn" data-mood="excited">Excited 🎉</button>
+    <button class="mood-btn" data-mood="sad">Sad 😔</button>
+    <button class="mood-btn" data-mood="tense">Tense 😨</button>
+    <button class="mood-btn" data-mood="nostalgic">Nostalgic 🌅</button>
+    <button class="mood-btn" data-mood="romantic">Romantic ❤️</button>
+    <button class="mood-btn" data-mood="inspired">Inspired 🌟</button>
+    <button class="mood-btn" data-mood="hopeful">Hopeful 🌈</button>
+    <button class="mood-btn" data-mood="">Any Mood</button> 
+                
+            </div>
+        </div>
+
+        <!-- Pace Selection Page -->
+        <div id="pacePage" class="preference-form page">
+            <h2>What pace of movie are you looking for?</h2>
+            
+            <div class="pace-options">
+                <button class="pace-btn" data-pace="fast">Fast 🚀</button>
+                <button class="pace-btn" data-pace="medium">Medium 🌊</button>
+                <button class="pace-btn" data-pace="slow">Slow 🌱</button>
+                <button class="pace-btn" data-pace="">Any Pace</button>
+            </div>
+
+            <div class="page-nav">
+                <button id="backToMood">Back</button>
+            </div>
+        </div>
+
+        <!-- Family Friendly Selection Page -->
+        <div id="familyFriendlyPage" class="preference-form page">
+            <h2>Family Friendly?</h2>
+            
+            <div class="family-friendly-options">
+                <button class="family-btn" data-family="true">Yes 👨‍👩‍👧‍👦</button>
+                <button class="family-btn" data-family="false">No 🔞</button>
+                <button class="family-btn" data-family="">Any</button>
+            </div>
+
+            <div class="page-nav">
+                <button id="backToPace">Back</button>
+            </div>
+        </div>
+
+        <!-- Recommendations Page -->
+        <div id="recommendations" class="recommendations page">
+            <!-- Recommended movies will be dynamically inserted here -->
+            <div class="page-nav">
+                <button id="restartSearch">Start Over</button>
+            </div>
+        </div>
+
+        <div id="movieDetails" class="movie-details-container">
+            <!-- Movie details will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Application state
+        const moviePreferences = {
+            mood: '',
+            pace: '',
+            familyFriendly: ''
+        };
+
+        // Page Navigation
+        const pages = {
+            mood: document.getElementById('moodPage'),
+            pace: document.getElementById('pacePage'),
+            familyFriendly: document.getElementById('familyFriendlyPage'),
+            recommendations: document.getElementById('recommendations')
+        };
+
+        function showPage(pageToShow) {
+            Object.values(pages).forEach(page => page.classList.remove('active'));
+            pageToShow.classList.add('active');
+        }
+
+        // Mood Selection
+        document.querySelectorAll('.mood-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                moviePreferences.mood = this.dataset.mood;
+                showPage(pages.pace);
+            });
+        });
+
+        // Pace Selection
+        document.querySelectorAll('.pace-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                moviePreferences.pace = this.dataset.pace;
+                showPage(pages.familyFriendly);
+            });
+        });
+
+        // Family Friendly Selection
+        document.querySelectorAll('.family-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                moviePreferences.familyFriendly = this.dataset.family;
+                getRecommendations();
+            });
+        });
+
+        // Back Navigation
+        document.getElementById('backToMood').addEventListener('click', () => showPage(pages.mood));
+        document.getElementById('backToPace').addEventListener('click', () => showPage(pages.pace));
+
+        // Restart Search
+        document.getElementById('restartSearch').addEventListener('click', () => {
+            // Reset preferences
+            moviePreferences.mood = '';
+            moviePreferences.pace = '';
+            moviePreferences.familyFriendly = '';
+            
+            // Clear recommendations
+            pages.recommendations.innerHTML = '<div class="page-nav"><button id="restartSearch">Start Over</button></div>';
+            
+            // Go back to mood page
+            showPage(pages.mood);
+        });
+
+        function getRecommendations() {
+            // Construct query string
+            let queryString = [];
+            if (moviePreferences.mood) queryString.push(`mood=${moviePreferences.mood}`);
+            if (moviePreferences.pace) queryString.push(`pace=${moviePreferences.pace}`);
+            if (moviePreferences.familyFriendly) queryString.push(`familyFriendly=${moviePreferences.familyFriendly}`);
+
+            fetch('/recommend', {
+                method: 'POST',
+                body: queryString.join('&'),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(response => response.json())
+            .then(movies => {
+                const recommendationsDiv = document.getElementById('recommendations');
+                recommendationsDiv.innerHTML = '<h2>Recommended Movies</h2>';
+                
+                movies.forEach(movie => {
+                    const movieDiv = document.createElement('div');
+                    movieDiv.classList.add('movie-card');
+                    
+                    // Create a poster filename by replacing spaces with hyphens, removing special characters, and converting to lowercase
+                    const posterFilename = movie.title
+                        .replace(/[^a-zA-Z0-9\s]/g, '')  // Remove special characters
+                        .replace(/\s+/g, '-')
+                        .toLowerCase() + '.jpg';
+                    
+                    movieDiv.innerHTML = `
+                        <h3>${movie.title}</h3>
+                        <img src="posters/${posterFilename}" alt="${movie.title} Poster" 
+                             onerror="this.onerror=null; this.src='posters/default-poster.jpg';" 
+                             style="max-width: 200px; height: auto; margin-bottom: 10px;">
+                        <p>Year: ${movie.year}</p>
+                        <p>Rating: ⭐ ${movie.rating}</p>
+                        <p>Genres: ${movie.genres}</p>
+                        <button onclick="showMovieDetails('${movie.title}')">View Details</button>
+                    `;
+                    recommendationsDiv.appendChild(movieDiv);
+                });
+
+                // Add the "Start Over" button
+                const startOverBtn = document.createElement('button');
+                startOverBtn.id = 'restartSearch';
+                startOverBtn.textContent = 'Start Over';
+                startOverBtn.addEventListener('click', () => {
+                    // Reset preferences
+                    moviePreferences.mood = '';
+                    moviePreferences.pace = '';
+                    moviePreferences.familyFriendly = '';
+                    
+                    // Clear recommendations
+                    recommendationsDiv.innerHTML = '';
+                    
+                    // Go back to mood page
+                    showPage(pages.mood);
+                });
+                recommendationsDiv.appendChild(startOverBtn);
+
+                showPage(pages.recommendations);
+            });
+        }
+
+        function showMovieDetails(title) {
+            fetch('/movie-details', {
+                method: 'POST',
+                body: title,
+                headers: {
+                    'Content-Type': 'text/plain'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('movieDetails').innerHTML = html;
+                window.scrollTo({
+                    top: document.getElementById('movieDetails').offsetTop,
+                    behavior: 'smooth'
+                });
+            });
+        }
+    </script>
+</body>
+</html>
