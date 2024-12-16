@@ -108,6 +108,7 @@ Create a Pull Request.
 ```
 Add user authentication and profiles.
 Include more granular filters (e.g., by genre, release year).
+Add more movies of different moods and genres.
 Implement a recommendation algorithm based on user history.
 implement a machine learning model to analyze recommended movies in the past
 ```
