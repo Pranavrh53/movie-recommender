@@ -88,6 +88,8 @@ Follow the prompts to select your preferences:
 Step 1: Select your current mood.
 Step 2: Choose the pace of the movie.
 Step 3: Decide if the movie should be family-friendly.
+also the movie recommended trailer can be viewed 
+
 Receive recommendations with movie details and options to view trailers.
 ```
 
