@@ -35,20 +35,22 @@ Dynamic UI: Smooth transitions and responsive design for various screen sizes.
 ```
 To get started with the movie-recommender, follow these steps:
 
-Clone the Repository
+1.Clone the Repository
 
 git clone https://github.com/your-repo/MovieRecommender.git
 cd MovieRecommender
-Setup Backend
+
+2.Setup Backend
 
 Ensure you have Java installed.
 Compile and run the backend server:
-bash
-Copy code
+
+3.bash
 javac MovieRecommender.java
 java MovieRecommender
 The server will start on an available port (default: 8080).
-Run the Frontend
+
+4.Run the Frontend
 
 Open index.html in any modern web browser.
 Place Movie Data
