@@ -25,6 +25,35 @@
 </head>
 <body>
     <div class="container">
+        <!-- Authentication Page -->
+        <div id="authPage" class="page active">
+            <div class="auth-container">
+                <h2 id="authTitle">Login to Movie Recommender</h2>
+                <div id="errorMessage" class="error-message"></div>
+                <form id="authForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <button type="submit" class="auth-button" id="authSubmitBtn">Login</button>
+                </form>
+                <div class="auth-toggle">
+                    <button id="authToggleBtn">Don't have an account? Sign up</button>
+                </div>
+            </div>
+        </div>
+        <!-- Main Application Container (includes all your existing pages) -->
+        <div id="mainApp" class="page">
+            <!-- User Info Bar -->
+            <div class="user-info">
+                <span id="welcomeMessage"></span>
+                <button id="logoutBtn">Logout</button>
+            </div>
+    <div class="container">
         <h1>🎬 Movie Recommender</h1>
         
         <!-- Mood Selection Page -->
@@ -33,15 +62,14 @@
             
             <div class="mood-options">
                 <button class="mood-btn" data-mood="happy">Happy 😊</button>
-    <button class="mood-btn" data-mood="excited">Excited 🎉</button>
-    <button class="mood-btn" data-mood="sad">Sad 😔</button>
-    <button class="mood-btn" data-mood="tense">Tense 😨</button>
-    <button class="mood-btn" data-mood="nostalgic">Nostalgic 🌅</button>
-    <button class="mood-btn" data-mood="romantic">Romantic ❤️</button>
-    <button class="mood-btn" data-mood="inspired">Inspired 🌟</button>
-    <button class="mood-btn" data-mood="hopeful">Hopeful 🌈</button>
-    <button class="mood-btn" data-mood="">Any Mood</button> 
-                
+                <button class="mood-btn" data-mood="excited">Excited 🎉</button>
+                <button class="mood-btn" data-mood="sad">Sad 😔</button>
+                <button class="mood-btn" data-mood="tense">Tense 😨</button>
+                <button class="mood-btn" data-mood="nostalgic">Nostalgic 🌅</button>
+                <button class="mood-btn" data-mood="romantic">Romantic ❤️</button>
+                <button class="mood-btn" data-mood="inspired">Inspired 🌟</button>
+                <button class="mood-btn" data-mood="hopeful">Hopeful 🌈</button>
+                <button class="mood-btn" data-mood="">Any Mood</button> 
             </div>
         </div>
 
@@ -88,6 +116,115 @@
             <!-- Movie details will be dynamically inserted here -->
         </div>
     </div>
+
+    <script>
+        // Authentication state
+        let isAuthenticated = false;
+        let currentUsername = '';
+        const authPage = document.getElementById('authPage');
+        const mainApp = document.getElementById('mainApp');
+        const authForm = document.getElementById('authForm');
+        const authTitle = document.getElementById('authTitle');
+        const authToggleBtn = document.getElementById('authToggleBtn');
+        const authSubmitBtn = document.getElementById('authSubmitBtn');
+        const errorMessage = document.getElementById('errorMessage');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const logoutBtn = document.getElementById('logoutBtn');
+        let isLoginMode = true;
+
+        // Check if user is already logged in
+        function checkAuth() {
+            const storedUsername = localStorage.getItem('username');
+            if (storedUsername) {
+                currentUsername = storedUsername;
+                isAuthenticated = true;
+                showMainApp();
+            }
+        }
+
+        function showMainApp() {
+            authPage.classList.remove('active');
+            mainApp.classList.add('active');
+            welcomeMessage.textContent = `Welcome, ${currentUsername}!`;
+        }
+
+        function showAuthPage() {
+            mainApp.classList.remove('active');
+            authPage.classList.add('active');
+            authForm.reset();
+        }
+
+        // Toggle between login and signup
+        authToggleBtn.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            authTitle.textContent = isLoginMode ? 'Login to Movie Recommender' : 'Create Account';
+            authSubmitBtn.textContent = isLoginMode ? 'Login' : 'Sign Up';
+            authToggleBtn.textContent = isLoginMode ? 'Dont have an account? Sign up' : 'Already have an account? Login';
+        });
+
+        // Handle form submission
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const endpoint = isLoginMode ? '/login' : '/register';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    if (isLoginMode) {
+                        currentUsername = username;
+                        localStorage.setItem('username', username);
+                        isAuthenticated = true;
+                        showMainApp();
+                    } else {
+                        // If registration successful, switch to login mode
+                        isLoginMode = true;
+                        authTitle.textContent = 'Login to Movie Recommender';
+                        authSubmitBtn.textContent = 'Login';
+                        authToggleBtn.textContent = 'Dont have an account? Sign up';
+                        errorMessage.textContent = 'Registration successful! Please login.';
+                        authForm.reset();
+                    }
+                } else {
+                    errorMessage.textContent = data.message || 'Authentication failed';
+                }
+            } catch (err) {
+                errorMessage.textContent = 'Server error. Please try again.';
+            }
+        });
+
+        // Handle logout
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('username');
+            isAuthenticated = false;
+            currentUsername = '';
+            showAuthPage();
+        });
+
+        // Modify your existing getRecommendations function to include username
+        const originalGetRecommendations = getRecommendations;
+        getRecommendations = function() {
+            // Add username to your existing preferences
+            if (currentUsername) {
+                queryString.push(`username=${currentUsername}`);
+            }
+            // Call the original function
+            originalGetRecommendations();
+        };
+
+        checkAuth();
+    </script>
+
 
     <script>
         // Application state
@@ -146,10 +283,18 @@
             moviePreferences.familyFriendly = '';
             
             // Clear recommendations
-            pages.recommendations.innerHTML = '<div class="page-nav"><button id="restartSearch">Start Over</button></div>';
+            const recommendationsDiv = document.getElementById('recommendations');
+            recommendationsDiv.innerHTML = '<div class="page-nav"><button id="restartSearch">Start Over</button></div>';
+            
+            // Clear movie details
+            const movieDetailsDiv = document.getElementById('movieDetails');
+            movieDetailsDiv.innerHTML = '';
             
             // Go back to mood page
             showPage(pages.mood);
+            
+            // Re-attach event listener to the new Start Over button
+            document.getElementById('restartSearch').addEventListener('click', this);
         });
 
         function getRecommendations() {
@@ -175,9 +320,8 @@
                     const movieDiv = document.createElement('div');
                     movieDiv.classList.add('movie-card');
                     
-                    // Create a poster filename by replacing spaces with hyphens, removing special characters, and converting to lowercase
                     const posterFilename = movie.title
-                        .replace(/[^a-zA-Z0-9\s]/g, '')  // Remove special characters
+                        .replace(/[^a-zA-Z0-9\s]/g, '')
                         .replace(/\s+/g, '-')
                         .toLowerCase() + '.jpg';
                     
@@ -207,6 +351,10 @@
                     // Clear recommendations
                     recommendationsDiv.innerHTML = '';
                     
+                    // Clear movie details
+                    const movieDetailsDiv = document.getElementById('movieDetails');
+                    movieDetailsDiv.innerHTML = '';
+                    
                     // Go back to mood page
                     showPage(pages.mood);
                 });
@@ -234,5 +382,280 @@
             });
         }
     </script>
+
+<div id="statsSection" class="stats-section">
+    <div class="stat-item"><strong>Movies:</strong> 102</div>
+    <div class="stat-item"><strong>Actors:</strong> 259</div>
+    <div class="stat-item">
+        <strong>Genres:</strong>
+        <div class="genre-container">
+            <div class="genre-display">View Genres</div>
+            <ul class="genre-list">
+                <li>Action</li>
+                <li>Adventure</li>
+                <li>Animation</li>
+                <li>Biography</li>
+                <li>Comedy</li>
+                <li>Crime</li>
+                <li>Drama</li>
+                <li>Family</li>
+                <li>Fantasy</li>
+                <li>History</li>
+                <li>Horror</li>
+                <li>Music</li>
+                <li>Musical</li>
+                <li>Mystery</li>
+                <li>Romance</li>
+                <li>Sci-Fi</li>
+                <li>Thriller</li>
+                <li>War</li>
+                <li>Coming-of-age</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+
+document.addEventListener('DOMContentLoaded', () => {
+    const genreContainer = document.querySelector('.genre-container');
+    const genreDisplay = document.querySelector('.genre-display');
+
+    // Toggle dropdown visibility
+    genreDisplay.addEventListener('click', () => {
+        genreContainer.classList.toggle('open');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!genreContainer.contains(e.target)) {
+            genreContainer.classList.remove('open');
+        }
+    });
+});
+
+
+    </script>
+
+
+
+
+<div id="topMoviesSection" class="stats-section">
+    <div class="title">
+        TOP MOVIES BY YEAR
+    </div>
+    
+    <div id="chartRoot"></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="stats-container">
+    <select id="yearSelect" class="year-dropdown">
+        <option value="2024">2024</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+        <option value="2021">2021</option>
+        <option value="2020">2020</option>
+        <option value="2019">2019</option>
+        <option value="2018">2018</option>
+        <option value="2017">2017</option>
+        <option value="2016">2016</option>
+        <option value="2015">2015</option>
+    </select>
+    <div class="chart-container">
+        <canvas id="moviesChart"></canvas>
+    </div>
+</div>
+
+<style>
+
+    
+.stats-container {
+    padding: 20px;
+    background-color: #1f1f1f;
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+.year-dropdown {
+    background-color: #5b5b5b;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.year-dropdown:hover {
+    background-color: #E50914;
+}
+
+.chart-container {
+    height: 400px;
+    width: 100%;
+}
+</style>
+
+
+
+<script>
+// Sample data for top movies by year
+const movieData = {
+    2024: [
+        { title: "Dune: Part Two", views: 950000 },
+        { title: "Madame Web", views: 850000 },
+        { title: "Bob Marley: One Love", views: 750000 },
+        { title: "Anyone But You", views: 650000 },
+        { title: "Mean Girls", views: 550000 }
+    ],
+    2023: [
+        { title: "Barbie", views: 1200000 },
+        { title: "Oppenheimer", views: 1100000 },
+        { title: "Guardians of the Galaxy Vol. 3", views: 980000 },
+        { title: "The Super Mario Bros. Movie", views: 920000 },
+        { title: "Spider-Man: Across the Spider-Verse", views: 890000 }
+    ],
+    2022: [
+        { title: "Top Gun: Maverick", views: 1150000 },
+        { title: "Black Panther: Wakanda Forever", views: 1050000 },
+        { title: "Avatar: The Way of Water", views: 1020000 },
+        { title: "Thor: Love and Thunder", views: 880000 },
+        { title: "The Batman", views: 850000 }
+    ],
+    2021: [
+        { title: "Spider-Man: No Way Home", views: 1180000 },
+        { title: "Shang-Chi", views: 950000 },
+        { title: "Venom: Let There Be Carnage", views: 890000 },
+        { title: "Black Widow", views: 850000 },
+        { title: "F9: The Fast Saga", views: 820000 }
+    ],
+    2020: [
+        { title: "Wonder Woman 1984", views: 780000 },
+        { title: "Tenet", views: 740000 },
+        { title: "Birds of Prey", views: 650000 },
+        { title: "The New Mutants", views: 580000 },
+        { title: "Sonic the Hedgehog", views: 560000 }
+    ],
+    2019: [
+        { title: "Avengers: Endgame", views: 1250000 },
+        { title: "The Lion King", views: 1100000 },
+        { title: "Star Wars: The Rise of Skywalker", views: 1050000 },
+        { title: "Captain Marvel", views: 980000 },
+        { title: "Spider-Man: Far From Home", views: 950000 }
+    ],
+    2018: [
+        { title: "Black Panther", views: 1150000 },
+        { title: "Avengers: Infinity War", views: 1120000 },
+        { title: "Jurassic World: Fallen Kingdom", views: 980000 },
+        { title: "Incredibles 2", views: 920000 },
+        { title: "Aquaman", views: 890000 }
+    ],
+    2017: [
+        { title: "Star Wars: The Last Jedi", views: 1080000 },
+        { title: "Beauty and the Beast", views: 980000 },
+        { title: "Wonder Woman", views: 920000 },
+        { title: "Guardians of the Galaxy Vol. 2", views: 880000 },
+        { title: "Spider-Man: Homecoming", views: 850000 }
+    ],
+    2016: [
+        { title: "Captain America: Civil War", views: 1050000 },
+        { title: "Rogue One: A Star Wars Story", views: 980000 },
+        { title: "Finding Dory", views: 920000 },
+        { title: "Zootopia", views: 880000 },
+        { title: "The Jungle Book", views: 850000 }
+    ],
+    2015: [
+        { title: "Star Wars: The Force Awakens", views: 1180000 },
+        { title: "Jurassic World", views: 1080000 },
+        { title: "Avengers: Age of Ultron", views: 980000 },
+        { title: "Inside Out", views: 920000 },
+        { title: "Furious 7", views: 890000 }
+    ]
+};
+
+let chart = null;
+
+function createChart(year) {
+    const ctx = document.getElementById('moviesChart').getContext('2d');
+    const yearData = movieData[year];
+    
+    if (chart) {
+        chart.destroy();
+    }
+    
+    chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: yearData.map(movie => movie.title),
+            datasets: [{
+                label: 'Views',
+                data: yearData.map(movie => movie.views),
+                backgroundColor: [
+                    '#E50914',
+                    '#B20710',
+                    '#831010',
+                    '#630C0C',
+                    '#4A0909'
+                ],
+                borderColor: '#1f1f1f',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#5b5b5b'
+                    },
+                    ticks: {
+                        color: '#ffffff'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: '#5b5b5b'
+                    },
+                    ticks: {
+                        color: '#ffffff',
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                
+            }
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const yearSelect = document.getElementById('yearSelect');
+    createChart(yearSelect.value);
+    
+    yearSelect.addEventListener('change', function() {
+        createChart(this.value);
+    });
+});
+</script>
+
+
+    
+    
+    
+
+  
+    
+
+    
 </body>
 </html>
