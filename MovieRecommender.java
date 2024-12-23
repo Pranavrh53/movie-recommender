@@ -3,7 +3,11 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+
+
 
 class Movie {
     private String title;
@@ -200,6 +204,8 @@ class MovieDatabase {
     }
 }
 
+
+
 //edited till here
 
 public class MovieRecommender {
@@ -210,9 +216,29 @@ public class MovieRecommender {
         "{\"title\":\"%s\",\"year\":%d,\"rating\":%.1f,\"genres\":\"%s\"}";
     private static final int[] PORTS = {8080, 8081, 8082, 8083, 8084, 8085};
 
+    // Declare userRecommendations as a static or instance variable in the MovieRecommender class
+private static Map<String, List<Movie>> userRecommendations = new HashMap<>();
+
+
+    private static String[] parseCredentials(String json) {
+        json = json.replaceAll("[{}\"]", "");
+        Map<String, String> map = new HashMap<>();
+        for (String pair : json.split(",")) {
+            String[] keyValue = pair.split(":");
+            map.put(keyValue[0], keyValue[1]);
+        }
+        return new String[]{map.get("username"), map.get("password")};
+    }
+
+    
+
     public static void main(String[] args) {
         movieDb = new MovieDatabase(new AdvancedRecommender());
         movieDb.loadMovies("./movies.csv");
+
+
+
+        
 
         // Initialize movie details provider
         movieDetailsProvider = new MovieDetailsProvider("./movies.csv");
@@ -259,6 +285,8 @@ public class MovieRecommender {
                                 String.join(", ", movie.getGenres())))
                             .collect(Collectors.joining(",", "[", "]"));
 
+                            
+                            
                         exchange.getResponseHeaders().set("Content-Type", "application/json");
                         byte[] responseBytes = jsonResponse.getBytes();
                         exchange.sendResponseHeaders(200, responseBytes.length);
@@ -314,6 +342,107 @@ public class MovieRecommender {
                     }
                 }
             });
+
+            // Add these new endpoint handlers
+server.createContext("/login", new HttpHandler() {
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        if ("POST".equals(exchange.getRequestMethod())) {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST,OPTIONS");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+            
+            InputStreamReader isr = new InputStreamReader(exchange.getRequestBody());
+            BufferedReader br = new BufferedReader(isr);
+            StringBuilder requestBody = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                requestBody.append(line);
+            }
+            
+            String[] credentials = parseCredentials(requestBody.toString());
+            String username = credentials[0];
+            String password = credentials[1];
+            
+            if (DatabaseHandler.authenticateUser(username, password)) {
+                String response = "{\"success\":true,\"message\":\"Login successful\"}";
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(200, response.length());
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
+            } else {
+                String response = "{\"success\":false,\"message\":\"Invalid credentials\"}";
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(401, response.length());
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
+            }
+        } else if ("OPTIONS".equals(exchange.getRequestMethod())) {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST,OPTIONS");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+            exchange.sendResponseHeaders(204, -1);
+        }
+    }
+});
+
+server.createContext("/register", new HttpHandler() {
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        if ("POST".equals(exchange.getRequestMethod())) {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST,OPTIONS");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+            
+            InputStreamReader isr = new InputStreamReader(exchange.getRequestBody());
+            BufferedReader br = new BufferedReader(isr);
+            StringBuilder requestBody = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                requestBody.append(line);
+            }
+            
+            String[] credentials = parseCredentials(requestBody.toString());
+            String username = credentials[0];
+            String password = credentials[1];
+            
+            if (DatabaseHandler.userExists(username)) {
+                String response = "{\"success\":false,\"message\":\"Username already exists\"}";
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+                exchange.sendResponseHeaders(400, response.length());
+                try (OutputStream os = exchange.getResponseBody()) {
+                    os.write(response.getBytes());
+                }
+            } else {
+                if (DatabaseHandler.registerUser(username, password)) {
+                    String response = "{\"success\":true,\"message\":\"Registration successful\"}";
+                    exchange.getResponseHeaders().set("Content-Type", "application/json");
+                    exchange.sendResponseHeaders(200, response.length());
+                    try (OutputStream os = exchange.getResponseBody()) {
+                        os.write(response.getBytes());
+                    }
+                } else {
+                    String response = "{\"success\":false,\"message\":\"Registration failed\"}";
+                    exchange.getResponseHeaders().set("Content-Type", "application/json");
+                    exchange.sendResponseHeaders(500, response.length());
+                    try (OutputStream os = exchange.getResponseBody()) {
+                        os.write(response.getBytes());
+                    }
+                }
+            }
+        } else if ("OPTIONS".equals(exchange.getRequestMethod())) {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST,OPTIONS");
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+            exchange.sendResponseHeaders(204, -1);
+        }
+    }
+});
+
+
+
 
             server.setExecutor(null);
             server.start();
@@ -427,3 +556,4 @@ public class MovieRecommender {
 
 //javac MovieRecommender.java
 //java MovieRecommender.java
+//java -cp ".;sqlite-jdbc-3.42.0.0.jar" MovieRecommender
